@@ -11,6 +11,34 @@ import numpy as np
 from asa_parser import parse_asa_file
 
 
+def buscar_carpeta_asa_en_evento(dir_evento):
+    """
+    Busca de forma flexible e inteligente la subcarpeta que contiene los archivos ASA dentro de una carpeta de evento,
+    soportando variaciones como ACEL/ASA, ACEL/ASA2.0, subdirectorios con fecha (ej. 20240928024356A_0/ASA2.0), etc.
+    """
+    # Estrategia 1: Buscar subcarpetas nombradas ASA o ASA2.0
+    for root, dirs, files in os.walk(dir_evento):
+        dirname = os.path.basename(root).upper()
+        if 'ASA' in dirname:
+            archivos_validos = [f for f in os.listdir(root) if os.path.isfile(os.path.join(root, f)) and not f.endswith(('.py', '.txt', '.csv', '.xlsx', '.png', '.html'))]
+            if archivos_validos:
+                return root
+
+    # Estrategia 2: Buscar subcarpeta ACEL directamente
+    acel_dir = os.path.join(dir_evento, "ACEL")
+    if os.path.exists(acel_dir):
+        archivos_validos = [f for f in os.listdir(acel_dir) if os.path.isfile(os.path.join(acel_dir, f)) and not f.endswith(('.py', '.txt', '.csv', '.xlsx', '.png', '.html'))]
+        if archivos_validos:
+            return acel_dir
+
+    # Estrategia 3: Revisar directorio raíz del evento
+    archivos_validos = [f for f in os.listdir(dir_evento) if os.path.isfile(os.path.join(dir_evento, f)) and not f.endswith(('.py', '.txt', '.csv', '.xlsx', '.png', '.html'))]
+    if archivos_validos:
+        return dir_evento
+
+    return None
+
+
 def analizar_carpeta_evento(dir_asa, dir_salida=None):
     """
     Analiza todos los archivos ASA dentro de la carpeta de un evento específico.
@@ -20,7 +48,7 @@ def analizar_carpeta_evento(dir_asa, dir_salida=None):
         raise FileNotFoundError(f"La carpeta especificada no existe: {dir_asa}")
 
     archivos = glob.glob(os.path.join(dir_asa, "*"))
-    archivos = [f for f in archivos if os.path.isfile(f) and not f.endswith('.py') and not f.endswith('.txt') and not f.endswith('.csv') and not f.endswith('.xlsx')]
+    archivos = [f for f in archivos if os.path.isfile(f) and not f.endswith(('.py', '.txt', '.csv', '.xlsx', '.png', '.html'))]
 
     registros_meta = []
     datos_eventos_dict = {}
@@ -58,8 +86,17 @@ def analizar_carpeta_evento(dir_asa, dir_salida=None):
     sensores_unicos = df_event['sensor_modelo'].unique().tolist() if 'sensor_modelo' in df_event else []
     tipos_suelo = df_event['tipo_suelo'].unique().tolist() if 'tipo_suelo' in df_event else []
 
+    # Determinar nombre legible del evento
+    nombre_carpeta_evento = os.path.basename(os.path.normpath(dir_asa))
+    # Intentar extraer nombre del sismo de la ruta padre si la carpeta actual es ASA/ASA2.0
+    partes_ruta = os.path.normpath(dir_asa).split(os.sep)
+    for part in reversed(partes_ruta):
+        if part.upper() not in ['ASA', 'ASA2.0', 'ASA_2.0', 'ACEL'] and not part.endswith('A_0'):
+            nombre_carpeta_evento = part
+            break
+
     estadisticas = {
-        'carpeta_evento': os.path.basename(os.path.dirname(os.path.dirname(dir_asa))),
+        'carpeta_evento': nombre_carpeta_evento,
         'fecha_sismo': sismo_fecha,
         'hora_sismo': sismo_hora,
         'magnitud': sismo_mag,
@@ -83,7 +120,6 @@ def analizar_carpeta_evento(dir_asa, dir_salida=None):
         csv_path = os.path.join(dir_salida, "metadatos_evento_detalle.csv")
         excel_path = os.path.join(dir_salida, "metadatos_evento_detalle.xlsx")
         
-        # Eliminar columnas no serializables en CSV/Excel si las hubiera
         df_export = df_event.copy()
         if 'orientaciones' in df_export.columns:
             df_export['orientaciones'] = df_export['orientaciones'].apply(lambda x: "/".join(x) if isinstance(x, list) else str(x))
@@ -101,14 +137,24 @@ def analizar_carpeta_evento(dir_asa, dir_salida=None):
 
 def analizar_toda_base_datos(dir_base_datos, dir_salida=None):
     """
-    Escanea recursivamente la carpeta base de datos buscando todas las subcarpetas de eventos ACEL/ASA.
+    Escanea recursivamente la carpeta base de datos buscando todas las subcarpetas de eventos de forma inteligente.
     Genera un reporte estadístico consolidado de toda la base de datos.
     """
     if not os.path.exists(dir_base_datos):
         raise FileNotFoundError(f"La ruta de la base de datos no existe: {dir_base_datos}")
 
-    carpetas_asa = glob.glob(os.path.join(dir_base_datos, "**", "ACEL", "ASA"), recursive=True)
-    print(f"Total de carpetas de eventos ASA encontradas en la base de datos: {len(carpetas_asa)}")
+    carpetas_eventos_raiz = [os.path.join(dir_base_datos, d) for d in os.listdir(dir_base_datos) if os.path.isdir(os.path.join(dir_base_datos, d))]
+    print(f"Buscando subcarpetas ASA en los {len(carpetas_eventos_raiz)} eventos de la base de datos...")
+
+    carpetas_asa = []
+    for dir_ev in carpetas_eventos_raiz:
+        target_asa = buscar_carpeta_asa_en_evento(dir_ev)
+        if target_asa:
+            carpetas_asa.append(target_asa)
+        else:
+            print(f"⚠️ Atención: No se encontraron archivos ASA en: {os.path.basename(dir_ev)}")
+
+    print(f"Total de carpetas de eventos ASA listas para procesar: {len(carpetas_asa)}")
 
     todos_los_registros = []
     resumen_eventos = []
@@ -118,7 +164,7 @@ def analizar_toda_base_datos(dir_base_datos, dir_salida=None):
             df_event, stats, _ = analizar_carpeta_evento(carpeta)
             todos_los_registros.append(df_event)
             resumen_eventos.append(stats)
-            print(f"[{idx}/{len(carpetas_asa)}] Procesado: {stats['carpeta_evento']} - {stats['registros_validos']} registros válidos.")
+            print(f"[{idx}/{len(carpetas_asa)}] Procesado: {stats['carpeta_evento']} - {stats['registros_validos']} registros válidos (PGA Máx: {stats['pga_maximo_evento_gal']:.2f} Gal).")
         except Exception as e:
             print(f"[{idx}/{len(carpetas_asa)}] Error procesando carpeta {carpeta}: {e}")
 

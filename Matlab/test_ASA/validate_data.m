@@ -3,45 +3,42 @@ clear
 clc
 close
 
-ruta = 'C:\Users\MCarrilloL\Documents\Doctorado\FallaFinita_Registros\base_datos\2023_12_03_0029_02_M2_CDMX\ACEL\ASA';
-archivos = dir(ruta);
-% Eliminar carpetas
-archivos = archivos(~[archivos.isdir]);
-N = length(archivos);
-fprintf('Número de archivos encontrados: %d\n\n', N);
+%ruta = 'C:\Users\MCarrilloL\Documents\Doctorado\FallaFinita_Registros\base_datos\2023_12_03_0029_02_M2_CDMX\ACEL\ASA';
+% archivos = dir(ruta);
+% % Eliminar carpetas
+% archivos = archivos(~[archivos.isdir]);
+% N = length(archivos);
+% fprintf('Número de archivos encontrados: %d\n\n', N);
+stationSCT=readstationBMSF_beta('SCT18509.191');
 
-for i=1:N
-    stationCUP=readstationBMSF_beta('*');
+dt=(stationSCT.channel(1).dt);
 
-end
-%dt=(stationCUP.channel(1).dt);
+vs_cup=stationSCT.channel(1).acc;
+ns_cup=stationSCT.channel(2).acc;
+es_cup=stationSCT.channel(3).acc;
+t=0:dt:(length(vs_cup)-1)*dt;
 
-%vs_cup=stationCUP.channel(1).acc;
-%ns_cup=stationCUP.channel(2).acc;
-%es_cup=stationCUP.channel(3).acc;
-%t=0:dt:(length(vs_cup)-1)*dt;
+figure(1)
+subplot(3,1,1)
+plot(t,vs_cup)
+title(' Componente vertical ','FontSize',16)
+%xlabel(' Tiempo [s] ','FontSize',16)
+ylabel(' [cm/s^2] ','FontSize',16)
 
-% figure(1)
-% subplot(3,1,1)
-% plot(t,vs_cup)
-% title(' Componente vertical ','FontSize',16)
-% %xlabel(' Tiempo [s] ','FontSize',16)
-% ylabel(' [cm/s^2] ','FontSize',16)
-% 
-% subplot(3,1,2)
-% plot(t,ns_cup)
-% title(' Componente norte-sur ','FontSize',16)
-% %xlabel(' Tiempo [s] ','FontSize',16)
-% ylabel(' [cm/s^2] ','FontSize',16)
-% 
-% 
-% subplot(3,1,3)
-% plot(t,es_cup)
-% title(' Componente este-oeste ','FontSize',16)
-% xlabel(' Tiempo [s] ','FontSize',16)
-% ylabel(' [cm/s^2] ','FontSize',16)
-% 
-% 
+subplot(3,1,2)
+plot(t,ns_cup)
+title(' Componente norte-sur ','FontSize',16)
+%xlabel(' Tiempo [s] ','FontSize',16)
+ylabel(' [cm/s^2] ','FontSize',16)
+
+
+subplot(3,1,3)
+plot(t,es_cup)
+title(' Componente este-oeste ','FontSize',16)
+xlabel(' Tiempo [s] ','FontSize',16)
+ylabel(' [cm/s^2] ','FontSize',16)
+
+
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%% VALIDACIÓN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % %%% Extraer registros de la simulación (TACY, SCT2, CUP5)

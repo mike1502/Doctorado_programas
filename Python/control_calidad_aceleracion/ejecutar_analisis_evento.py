@@ -30,11 +30,11 @@ from graficar_formas_onda import graficar_sismogramas_estacion, graficar_parrill
 # ¿Deseas analizar toda la base de datos de 70+ carpetas de un solo golpe?
 #   False -> Analiza solo la carpeta especificada en 'CARPETA_EVENTO_A_PROCESAR'
 #   True  -> Analiza automáticamente TODAS las carpetas dentro de 'CARPETA_BASE_DATOS_GENERAL'
-PROCESAR_TODA_LA_BASE_DE_DATOS = False
+PROCESAR_TODA_LA_BASE_DE_DATOS = True
 
 
 # 1. Ruta de la carpeta del evento específico que deseas analizar (para modo individual):
-CARPETA_EVENTO_A_PROCESAR = r"C:\Users\MCarrilloL\Documents\Doctorado\FallaFinita_Registros\base_datos\2023_12_03_0029_02_M2_CDMX\ACEL\ASA"
+CARPETA_EVENTO_A_PROCESAR = r"C:\Users\MCarrilloL\Documents\Doctorado\FallaFinita_Registros\base_datos\2024-09-26-1717_M1_1_CDMX\ACEL\ASA"
 
 
 # 2. Ruta raíz donde están contenidas todas las carpetas de eventos:
