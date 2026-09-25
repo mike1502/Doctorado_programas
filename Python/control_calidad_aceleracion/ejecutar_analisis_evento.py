@@ -4,9 +4,9 @@ Programa principal de ejecución optimizado para SPYDER y terminal.
 
 INSTRUCCIONES PARA USAR EN SPYDER:
 1. Abre este archivo (ejecutar_analisis_evento.py) en Spyder.
-2. Modifica la sección de "CONFIGURACIÓN USER / SPYDER" más abajo segun necesites:
+2. Modifica la sección de "CONFIGURACIÓN USER / SPYDER" más abajo según necesites:
    - Para analizar UN SOLO EVENTO: Cambia la ruta en 'CARPETA_EVENTO_A_PROCESAR' y deja PROCESAR_TODA_LA_BASE_DE_DATOS = False.
-   - Para analizar TODAS LAS CARPETAS (70+): Cambia PROCESAR_TODA_LA_BASE_DE_DATOS = True.
+   - Para analizar TODAS LAS CARPETAS (72): Cambia PROCESAR_TODA_LA_BASE_DE_DATOS = True.
 3. Presiona F5 (o el botón verde de "Run/Play") en Spyder.
 """
 
@@ -27,14 +27,14 @@ from graficar_formas_onda import graficar_sismogramas_estacion, graficar_parrill
 #                 ⚙️ CONFIGURACIÓN PARA SPYDER (EDITA AQUÍ)
 # ==============================================================================
 
-# ¿Deseas analizar toda la base de datos de 70+ carpetas de un solo golpe?
+# ¿Deseas analizar toda la base de datos de 72 carpetas de un solo golpe?
 #   False -> Analiza solo la carpeta especificada en 'CARPETA_EVENTO_A_PROCESAR'
 #   True  -> Analiza automáticamente TODAS las carpetas dentro de 'CARPETA_BASE_DATOS_GENERAL'
 PROCESAR_TODA_LA_BASE_DE_DATOS = True
 
 
 # 1. Ruta de la carpeta del evento específico que deseas analizar (para modo individual):
-CARPETA_EVENTO_A_PROCESAR = r"C:\Users\MCarrilloL\Documents\Doctorado\FallaFinita_Registros\base_datos\2024-09-26-1717_M1_1_CDMX\ACEL\ASA"
+CARPETA_EVENTO_A_PROCESAR = r"C:\Users\MCarrilloL\Documents\Doctorado\FallaFinita_Registros\base_datos\2023_12_03_0029_02_M2_CDMX\ACEL\ASA"
 
 
 # 2. Ruta raíz donde están contenidas todas las carpetas de eventos:
@@ -51,14 +51,14 @@ def procesar_un_evento(dir_asa):
     print(f"Ruta procesada: {dir_asa}\n")
 
     if not os.path.exists(dir_asa):
-        print(f"❌ ERROR: La carpeta especificada no existe:\n   {dir_asa}")
+        print(f"ERROR: La carpeta especificada no existe:\n   {dir_asa}")
         return
 
     # Determinar nombre del evento a partir de la ruta
     partes = dir_asa.replace('/', '\\').split('\\')
     nombre_evento = "evento"
     for i, p in enumerate(partes):
-        if p.upper() == 'ACEL' and i > 0:
+        if p.upper() in ['ACEL', 'ASA', 'ASA2.0'] and i > 0:
             nombre_evento = partes[i-1]
             break
     if nombre_evento == "evento":
@@ -112,7 +112,7 @@ def procesar_un_evento(dir_asa):
         )
 
     print("\n" + "=" * 80)
-    print("   ✅ ANÁLISIS DEL EVENTO COMPLETADO EXITOSAMENTE")
+    print("   [OK] ANÁLISIS DEL EVENTO COMPLETADO EXITOSAMENTE")
     print("=" * 80)
     print(f"Resultados guardados en: {dir_salida_evento}")
     print(f"  - Detalle Metadatos CSV:     {os.path.join(dir_salida_evento, 'metadatos_evento_detalle.csv')}")
@@ -127,12 +127,12 @@ def procesar_un_evento(dir_asa):
 def procesar_toda_la_base(dir_base):
     """Escanea y procesa todas las subcarpetas de eventos dentro de la base de datos."""
     print("=" * 80)
-    print("   🚀 PROCESANDO TODAS LAS CARPETAS (70+) DE LA BASE DE DATOS")
+    print("   PROCESANDO TODAS LAS CARPETAS (72) DE LA BASE DE DATOS")
     print("=" * 80)
     dir_salida_global = os.path.join(dir_script, "resultados_globales_base_datos")
     analizar_toda_base_datos(dir_base, dir_salida=dir_salida_global)
     print("\n" + "=" * 80)
-    print("   ✅ BASE DE DATOS PROCESADA COMPLETAMENTE")
+    print("   [OK] BASE DE DATOS PROCESADA COMPLETAMENTE")
     print("=" * 80)
     print(f"Archivos Excel/CSV globales generados en: {dir_salida_global}\n")
 

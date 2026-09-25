@@ -152,7 +152,7 @@ def analizar_toda_base_datos(dir_base_datos, dir_salida=None):
         if target_asa:
             carpetas_asa.append(target_asa)
         else:
-            print(f"⚠️ Atención: No se encontraron archivos ASA en: {os.path.basename(dir_ev)}")
+            print(f"[!] Atencion: No se encontraron archivos ASA en: {os.path.basename(dir_ev)}")
 
     print(f"Total de carpetas de eventos ASA listas para procesar: {len(carpetas_asa)}")
 
